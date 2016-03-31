@@ -1,0 +1,334 @@
+<!--
+@license
+Copyright (c) 2016 Glenn Vandeuren. All rights reserved.
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-media-query/iron-media-query.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../ragin-icons/ragin-icons.html">
+<link rel="import" href="../ragin-ui-drawer/ragin-ui-drawer.html">
+<link rel="import" href="../ragin-ui-content/ragin-ui-content.html">
+
+
+<!--
+The 'ragin' app-shell.
+
+Example:
+
+    <ragin-app></ragin-app>
+
+Example:
+
+    <ragin-app plugins='["ragin-todo"]'></ragin-app>
+
+@demo demo/index.html
+@hero hero.svg
+-->
+
+<dom-module id="ragin-app">
+  <template>
+    <style>
+      :host {
+        display: block;
+        box-sizing: border-box;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+      }
+
+      /*main*/
+      main {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        @apply(--ragin-ui-drawer-main);
+      }
+
+      /*main transition*/
+      main.transition {
+        transition: left ease-in-out 0.3s, padding ease-in-out 0.3s;
+      }
+
+      /*drawer transition*/
+      ragin-ui-drawer.transition {
+        transition: -webkit-transform ease-in-out 0.3s, width ease-in-out 0.3s, visibility 0.3s;
+        transition: transform ease-in-out 0.3s, width ease-in-out 0.3s, visibility 0.3s;
+      }
+
+      /*drawer*/
+      ragin-ui-drawer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        @apply(--ragin-ui-drawer);
+      }
+
+      ragin-ui-drawer > ::content, main > ::content {
+        height: 100%;
+      }
+
+      /*mobile*/
+      /*main*/
+      main.mobile {
+        margin: 0;
+        min-height: 100%;
+        left: 0;
+        right: 0;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+      }
+
+      /*drawer*/
+      ragin-ui-drawer.mobile {
+        will-change: transform;
+      }
+
+      .drawer-open > ragin-ui-drawer.mobile {
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
+      }
+
+      :host:not(.drawer-open) ragin-ui-drawer {
+        visibility: hidden;
+        -webkit-transform: translateX(-100%);
+        transform: translateX(-100%);
+      }
+
+      .app-title {
+        margin: 0 auto;
+      }
+
+      ragin-ui-content {
+        padding: 45px 0;
+      }
+
+      main paper-toolbar {
+        background: #673AB7;
+      }
+    </style>
+    <iron-media-query
+        on-query-matches-changed="_onQueryMatchesChanged"
+        query="[[_computeMediaQuery(forceMobile, responsiveWidth)]]">
+    </iron-media-query>
+
+    <main
+      style$="[[_computeMainStyle(mobile, drawerWidth)]]"
+      class$="[[_computeMainClass(transition, mobile)]]">
+      <paper-toolbar class="medium-tall">
+        <paper-icon-button
+          icon="ragin-icons:menu"
+          style$="[[_computeDrawerToggleStyle(mobile)]]"
+          on-tap="toggleDrawer"></paper-icon-button>
+        <h1 class="bottom app-title">DeveloperRagin</h1>
+      </paper-toolbar>
+      <ragin-ui-content
+        plugins="[[plugins]]"
+        components-path="../../">
+      </ragin-ui-content>
+    </main>
+
+    <ragin-ui-drawer
+      class$="[[_computeDrawerClass(transition, mobile)]]"
+      items="[[menuItems]]">
+    </ragin-ui-drawer>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'ragin-app',
+
+      properties: {
+
+        /**
+         * Describes the plugins used in the app
+         *
+         * @type ["ragin-todo", "ragin-time"]
+         */
+        plugins: {
+          type: Array,
+          value: function() {
+            return [];
+          },
+          observer: '__pluginsChanged__'
+        },
+
+        /**
+         * @type ["todo", "time"]
+         */
+        menuItems: Array,
+
+        /**
+         * The panel to be selected when `paper-drawer-panel` changes to narrow
+         * layout.
+         */
+        defaultSelected: {
+          type: String,
+          value: 'main'
+        },
+
+        /**
+         * Returns true if the panel is in mobile layout.  This is useful if you
+         * need to show/hide elements based on the layout.
+         */
+        mobile: {
+          type: Boolean,
+          value: false,
+          readOnly: true,
+          notify: true
+        },
+
+        /**
+         * Max-width when the panel changes to narrow layout.
+         */
+        responsiveWidth: {
+          type: String,
+          value: '1440px'
+        },
+
+        /**
+         * Width of the drawer panel.
+         */
+        drawerWidth: {
+          type: String,
+          value: '256px'
+        },
+
+        /**
+        * The panel that is being selected. `drawer` for the drawer panel and
+        * `main` for the main panel.
+        *
+        * @type {string|null}
+        */
+        selected: {
+          reflectToAttribute: true,
+          notify: true,
+          type: String,
+          value: null
+        },
+
+         /**
+          * The attribute on elements that should toggle the drawer on tap, also elements will
+          * automatically be hidden in wide layout.
+          */
+         drawerToggleAttribute: {
+           type: String,
+           value: 'drawer-toggle'
+         },
+
+        /**
+         * If true, ignore `responsiveWidth` setting and force the narrow layout.
+         */
+        forceMobile: {
+          type: Boolean,
+          value: false
+        },
+
+        transition: {
+          type: Boolean,
+          value: false
+        }
+      },
+
+      attached: function() {
+        this.set('transition', true);
+      },
+
+      _computeMainStyle: function(mobile, drawerWidth) {
+        var style = '';
+        style += 'left:' + (mobile ? '0' : drawerWidth) + ';';
+        return style;
+      },
+
+      _classTask: function(classes) {
+        var names = [];
+        for (var key in classes) {
+          if (classes.hasOwnProperty(key) && classes[key]) {
+            names.push(key);
+          }
+        }
+        return names.join(' ');
+      },
+
+      _computeMainClass: function(transition, mobile) {
+        return this._classTask({'transition': transition ,'mobile': mobile});
+      },
+
+      _computeDrawerClass: function(transition, mobile) {
+        return this._classTask({'transition': transition ,'mobile': mobile});
+      },
+
+      _computeMediaQuery: function(forceMobile, responsiveWidth) {
+        return forceMobile ? '' : '(max-width: ' + responsiveWidth + ')';
+      },
+
+      _computeDrawerToggleStyle: function(mobile) {
+        return mobile ? '' : 'display: none;';
+      },
+
+      /**
+       * Toggles the drawer open and closed.
+       *
+       * @method toggleDrawer
+       */
+      toggleDrawer: function() {
+        if (this.selected === 'main') {
+          this.openDrawer();
+        } else {
+          this.closeDrawer();
+        }
+      },
+
+      /**
+       * Opens the drawer.
+       *
+       * @method openDrawer
+       */
+      openDrawer: function() {
+        this.selected = 'drawer';
+        this.classList.add('drawer-open');
+      },
+
+      /**
+       * Closes the drawer.
+       *
+       * @method closeDrawer
+       */
+      closeDrawer: function() {
+        this.selected = 'main';
+        this.classList.remove('drawer-open');
+      },
+
+      _responsiveChange: function(mobile) {
+        this._setMobile(mobile);
+        if (mobile) {
+          this.closeDrawer();
+        } else {
+          this.openDrawer();
+        }
+        this.selected = this.mobile ? this.defaultSelected : null;
+      },
+
+      _onQueryMatchesChanged: function(event) {
+        this._responsiveChange(event.detail.value);
+      },
+
+      __pluginsChanged__: function(plugins) {
+        this._setMenuItems(plugins);
+      },
+
+      _setMenuItems: function(plugins) {
+        this.menuItems = [];
+        plugins.forEach(function(plugin) {
+          var name = plugin.replace('ragin-', '');
+          this.push('menuItems', name);
+        }.bind(this));
+      }
+    });
+  </script>
+</dom-module>

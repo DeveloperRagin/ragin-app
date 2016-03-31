@@ -1,0 +1,34 @@
+{
+  "name": "ragin-app",
+  "version": "1.0.0",
+  "authors": [
+    "Glenn Vandeuren <vandeurenglenn@gmail.com>"
+  ],
+  "description": "The 'ragin' app-shell.",
+  "keywords": [
+    "web-component",
+    "polymer",
+    "ragin",
+    "ragin-app"
+  ],
+  "main": "ragin-app.html",
+  "license": "http://developerragin.github.io/LICENSE.txt",
+  "homepage": "https://github.com/DeveloperRagin/ragin-app/",
+  "ignore": [
+    "/.*",
+    "/test/",
+    "/CONTRIBUTING.md"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.2.0",
+    "ragin-ui-drawer": "DeveloperRagin/ragin-ui-drawer#^1.0.0",
+    "ragin-ui-content": "DeveloperRagin/ragin-ui-content#^1.0.0",
+    "iron-media-query": "^1.0.8",
+    "paper-icon-button": "^1.0.7"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "web-component-tester": "^4.0.0",
+    "ragin-todo": "DeveloperRagin/ragin-todo#^1.0.0"
+  }
+}
