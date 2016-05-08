@@ -24,7 +24,8 @@
     "ragin-ui-drawer": "DeveloperRagin/ragin-ui-drawer#^1.0.0",
     "ragin-ui-content": "DeveloperRagin/ragin-ui-content#^1.0.0",
     "iron-media-query": "^1.0.8",
-    "paper-icon-button": "^1.0.7"
+    "paper-icon-button": "^1.0.7",
+    "ragin-icons": "DeveloperRagin/ragin-icons"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
